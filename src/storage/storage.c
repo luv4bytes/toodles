@@ -916,9 +916,11 @@ static STORAGE_ERR_CODE storage_read_file(const byte_t* filepath, ssize_t* buffe
         }
 
         free(*buffer);
+        fclose(f);
         return STORAGE_ERROR;
     }
 
+    fclose(f);
     return STORAGE_NO_ERROR;
 }
 
