@@ -49,8 +49,4 @@ For help on using `toodles` in non-interactive mode pass `-h` as argument.
 
 ### Environment
 
-`toodles` will create the following directories:
-
-- $HOME/.toodles/
-
 You can use the `env` command in interactive mode to get a detailed overview of what files and directories `toodles` is using.
