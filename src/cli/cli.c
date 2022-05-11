@@ -37,6 +37,7 @@ SOFTWARE. */
 #include "../storage/storage.h"
 #include "../history/history.h"
 #include "../env/env.h"
+#include "../symbols/symbols.h"
 
 #define FWDECL // Indicator for forward declarative statements.
 
@@ -77,13 +78,13 @@ typedef struct inner_command_t
      * @brief Name of the command.
      *
      */
-    const byte_t* command;
+    const wchar_t* command;
 
     /**
     * @brief Short version of the command..
     *
     */
-    const byte_t* short_command;
+    const wchar_t* short_command;
 
     /**
      * @brief Is set to true if the command was issued as a short command.
@@ -113,7 +114,7 @@ typedef struct inner_command_t
      * @brief The function that is executed when the command is issued.
      *
      */
-    const void (*func)(const struct inner_command_t* cmd, const byte_t* cmdstr);
+    const void (*func)(const struct inner_command_t* cmd, const wchar_t* cmdstr);
 
 } command_t;
 
@@ -160,139 +161,139 @@ FWDECL static void cli_env();
  */
 static command_t COMMANDS[] = {
     {
-        .command = "add",
-        .short_command = "a",
+        .command = L"add",
+        .short_command = L"a",
         .description = "Adds a new todo entry.",
         .func = cli_add,
         .synopsis = "[TITLE](opt)",
         .category = TODOS,
     },
     {
-        .command = "remove",
-        .short_command = "r",
+        .command = L"remove",
+        .short_command = L"r",
         .description = "Removes a todo entry.",
         .func = cli_remove,
         .synopsis = "[ID]",
         .category = TODOS,
     },
     {
-        .command = "edit",
-        .short_command = "e",
+        .command = L"edit",
+        .short_command = L"e",
         .description = "Edit a todo entry.",
         .func = cli_edit,
         .synopsis = "[ID]",
         .category = TODOS,
     },
     {
-        .command = "detail",
-        .short_command = "d",
+        .command = L"detail",
+        .short_command = L"d",
         .description = "Displays the details of an entry.",
         .func = cli_detail,
         .synopsis = "[ID]",
         .category = TODOS,
     },
     {
-        .command = "list",
-        .short_command = "l",
+        .command = L"list",
+        .short_command = L"l",
         .description = "Lists all current entries.",
         .func = cli_list,
         .synopsis = "[LIST OPTION](opt)",
         .category = TODOS,
     },
     {
-        .command = "search",
-        .short_command = "s",
+        .command = L"search",
+        .short_command = L"s",
         .description = "Search entries by title.",
         .synopsis = "[SEARCH EXPR]",
         .func = cli_search,
         .category = TODOS,
     },
     {
-        .command = "done",
+        .command = L"done",
         .description = "Marks the given todo as done.",
         .func = cli_done,
         .synopsis = "[ID]",
         .category = TODOS,
     },
     {
-        .command = "open",
+        .command = L"open",
         .description = "Marks the given todo as open.",
         .func = cli_open,
         .synopsis = "[ID]",
         .category = TODOS,
     },
     {
-        .command = "erase",
+        .command = L"erase",
         .description = "Erases all entries from the database.",
         .func = cli_erase,
         .category = MISC,
     },
     {
-        .command = "help",
-        .short_command = "h",
+        .command = L"help",
+        .short_command = L"h",
         .description = "Displays helpful information for using toodle.",
         .func = cli_print_help,
         .category = MISC,
     },
     {
-        .command = "exit",
+        .command = L"exit",
         .description = "Exits toodles.",
         .func = cli_exit,
         .category = MISC,
     },
     {
-        .command = "quit",
+        .command = L"quit",
         .description = "Exits toodles.",
         .func = cli_exit,
         .category = MISC,
     },
     {
-        .command = "clear",
+        .command = L"clear",
         .description = "Clears the screen.",
         .func = cli_clear,
         .category = MISC,
     },
     {
-        .command = "history",
+        .command = L"history",
         .description = "Displays the command history of the session.",
         .func = cli_history,
         .category = MISC,
     },
     {
-        .command = "version",
+        .command = L"version",
         .description = "Displays toodles version number.",
         .func = cli_version,
         .category = MISC,
     },
     {
-        .command = "attach",
+        .command = L"attach",
         .description = "Attaches a file to an existing todo.",
         .func = cli_attach,
         .category = ATTACHMENTS,
     },
     {
-        .command = "delatt",
+        .command = L"delatt",
         .description = "Deletes the attachment with given id.",
         .func = cli_delete_attachment,
         .synopsis = "[ID]",
         .category = ATTACHMENTS
     },
     {
-        .command = "showatt",
+        .command = L"showatt",
         .description = "Shows all attachments for given todo id.",
         .func = cli_show_attachments,
         .synopsis = "[ID]",
         .category = ATTACHMENTS
     },
     {
-        .command = "!",
+        .command = L"!",
         .description = "Executes a command that is stored in the history.",
         .func = cli_history_exec,
         .synopsis = "[HISTORY INDEX]",
         .category = MISC,
     },
     {
-        .command = "env",
+        .command = L"env",
         .description = "Displays environment data for toodles.",
         .func = cli_env,
         .category = MISC,
@@ -305,12 +306,12 @@ static command_t COMMANDS[] = {
  * @param buffer The buffer to read into.
  * @param buflen Size of the buffer.
  */
-static void cli_getline_discard(byte_t* buffer, size_t buflen)
+static void cli_getline_discard(wchar_t* buffer, size_t buflen)
 {
     if (!buffer)
         return;
 
-    byte_t* check = fgets(buffer, buflen, stdin);
+    wchar_t* check = fgetws(buffer, buflen, stdin);
 
     if (!check)
     {
@@ -318,16 +319,16 @@ static void cli_getline_discard(byte_t* buffer, size_t buflen)
         return;
     }
 
-    size_t len = strlen(buffer);
-    size_t len_nl = strcspn(buffer, "\n");
+    size_t len = wcslen(buffer);
+    size_t len_nl = wcscspn(buffer, L"\n");
 
     if (len == len_nl)
     {
-        char c;
-        while ((c = getc(stdin)) != '\n');
+        wchar_t c;
+        while ((c = getwc(stdin)) != '\n');
     }
 
-    buffer[strcspn(buffer, "\n")] = 0;
+    buffer[wcscspn(buffer, L"\n")] = 0;
 }
 
 /**
@@ -340,7 +341,7 @@ static void cli_getline_discard(byte_t* buffer, size_t buflen)
  * @param buflens Array of size_t that holds the length of any argument in the argument order.
  * @return int Number of arguments.
  */
-static int cli_parse_cmd(const command_t* cmd, const byte_t* cmdstr, size_t argc, byte_t** buffers, size_t* buflens)
+static int cli_parse_cmd(const command_t* cmd, const wchar_t* cmdstr, size_t argc, wchar_t** buffers, size_t* buflens)
 {
     if (cmd == NULL)
     {
@@ -379,7 +380,7 @@ static int cli_parse_cmd(const command_t* cmd, const byte_t* cmdstr, size_t argc
         break;
     }
 
-    size_t cmdlen = (cmd->short_cmd_active == true ? strlen(cmd->short_command) : strlen(cmd->command)) + whitespaces + 1;
+    size_t cmdlen = (cmd->short_cmd_active == true ? wcslen(cmd->short_command) : wcslen(cmd->command)) + whitespaces + 1;
     for (size_t i = cmdlen; i < BUFLEN_CLI; i++)
     {
         if (cmdstr[i] == 0) // End of cmdstr
@@ -427,7 +428,7 @@ static int cli_parse_cmd(const command_t* cmd, const byte_t* cmdstr, size_t argc
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_exit(command_t* cmd, const byte_t* cmdstr)
+static void cli_exit(command_t* cmd, const wchar_t* cmdstr)
 {
     exit(EXIT_SUCCESS);
 }
@@ -440,9 +441,9 @@ static inline void pcmd(const command_t* cmd)
     }
 
     const byte_t* synops = cmd->synopsis == NULL ? "" : cmd->synopsis;
-    const byte_t* scmd = cmd->short_command == NULL ? "" : cmd->short_command;
+    const wchar_t* scmd = cmd->short_command == NULL ? L"" : cmd->short_command;
 
-    printf(MAGENTA("%-15s%-15s%-30s") "%-20s\n", cmd->command, scmd, synops, cmd->description);
+    printf(MAGENTA("%-15ls%-15ls%-30s") "%-20s\n", cmd->command, scmd, synops, cmd->description);
 }
 
 /**
@@ -451,7 +452,7 @@ static inline void pcmd(const command_t* cmd)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_print_help(command_t* cmd, const byte_t* cmdstr)
+static void cli_print_help(command_t* cmd, const wchar_t* cmdstr)
 {
     printf("\n");
     size_t len = sizeof(COMMANDS) / sizeof(COMMANDS[0]);
@@ -499,12 +500,12 @@ static void cli_print_help(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_add(command_t* cmd, const byte_t* cmdstr)
+static void cli_add(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t title[BUFLEN_TITLE] = { 0 };
-    byte_t details[BUFLEN_DETAIL] = { 0 };
+    wchar_t title[BUFLEN_TITLE] = { 0 };
+    wchar_t details[BUFLEN_DETAIL] = { 0 };
 
-    byte_t* args[] = {
+    wchar_t* args[] = {
         title,
     };
 
@@ -524,7 +525,14 @@ static void cli_add(command_t* cmd, const byte_t* cmdstr)
     }
 
     const byte_t* err = NULL;
-    STORAGE_ERR_CODE result = storage_new_todo(title, details, &err);
+
+    byte_t bs_title[BUFLEN_TITLE * sizeof(wchar_t)] = { 0 };
+    wstobs(title, bs_title, BUFLEN_TITLE * sizeof(wchar_t));
+
+    byte_t bs_details[BUFLEN_DETAIL * sizeof(wchar_t)] = { 0 };
+    wstobs(details, bs_details, BUFLEN_DETAIL * sizeof(wchar_t));
+
+    STORAGE_ERR_CODE result = storage_new_todo(bs_title, bs_details, &err);
 
     if (result != STORAGE_NO_ERROR)
     {
@@ -539,11 +547,11 @@ static void cli_add(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_list(command_t* cmd, const byte_t* cmdstr)
+static void cli_list(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t opt_str[BUFLEN_LIST_OPTION] = { 0 };
+    wchar_t opt_str[BUFLEN_LIST_OPTION] = { 0 };
 
-    byte_t* args[] = {
+    wchar_t* args[] = {
         opt_str
     };
 
@@ -571,14 +579,14 @@ static void cli_list(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_erase(command_t* cmd, const byte_t* cmdstr)
+static void cli_erase(command_t* cmd, const wchar_t* cmdstr)
 {
     printf(YELLOW("Do you really want to erase all data? [y,n]: "));
 
-    byte_t yes_no[BUFLEN_YES_NO] = { 0 };
+    wchar_t yes_no[BUFLEN_YES_NO] = { 0 };
     cli_getline_discard(yes_no, BUFLEN_YES_NO);
 
-    if (strcmp(yes_no, "y") != 0)
+    if (wcscmp(yes_no, L"y") != 0)
     {
         printf("Cancel\n");
         return;
@@ -602,11 +610,11 @@ static void cli_erase(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_search(command_t* cmd, const byte_t* cmdstr)
+static void cli_search(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t search[BUFLEN_SEARCH_STR] = { 0 };
+    wchar_t search[BUFLEN_SEARCH_STR] = { 0 };
 
-    byte_t* args[] = {
+    wchar_t* args[] = {
         search
     };
 
@@ -620,7 +628,11 @@ static void cli_search(command_t* cmd, const byte_t* cmdstr)
         return;
 
     const byte_t* err = NULL;
-    STORAGE_ERR_CODE error = storage_print_search_results(search, &err);
+
+    byte_t bs_search[BUFLEN_SEARCH_STR * sizeof(wchar_t)] = { 0 };
+    wstobs(search, bs_search, BUFLEN_SEARCH_STR * sizeof(wchar_t));
+
+    STORAGE_ERR_CODE error = storage_print_search_results(bs_search, &err);
 
     if (error != STORAGE_NO_ERROR)
     {
@@ -644,11 +656,11 @@ static void cli_clear()
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_remove(command_t* cmd, const byte_t* cmdstr)
+static void cli_remove(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t id[BUFLEN_ID] = { 0 };
+    wchar_t id[BUFLEN_ID] = { 0 };
 
-    byte_t* args[] = {
+    wchar_t* args[] = {
         id
     };
 
@@ -662,7 +674,11 @@ static void cli_remove(command_t* cmd, const byte_t* cmdstr)
         return;
 
     const byte_t* err = NULL;
-    STORAGE_ERR_CODE error = storage_remove_todo(id, &err);
+
+    byte_t bs_id[BUFLEN_ID * sizeof(wchar_t)] = { 0 };
+    wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
+
+    STORAGE_ERR_CODE error = storage_remove_todo(bs_id, &err);
 
     if (error != STORAGE_NO_ERROR)
     {
@@ -677,11 +693,11 @@ static void cli_remove(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_detail(command_t* cmd, const byte_t* cmdstr)
+static void cli_detail(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t id[BUFLEN_ID] = { 0 };
+    wchar_t id[BUFLEN_ID] = { 0 };
 
-    byte_t* args[] = {
+    wchar_t* args[] = {
         id
     };
 
@@ -695,7 +711,11 @@ static void cli_detail(command_t* cmd, const byte_t* cmdstr)
         return;
 
     const byte_t* err = NULL;
-    STORAGE_ERR_CODE error = storage_print_details(id, &err);
+
+    byte_t bs_id[BUFLEN_ID * sizeof(wchar_t)] = { 0 };
+    wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
+
+    STORAGE_ERR_CODE error = storage_print_details(bs_id, &err);
 
     if (error != STORAGE_NO_ERROR)
     {
@@ -710,11 +730,11 @@ static void cli_detail(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_done(command_t* cmd, const byte_t* cmdstr)
+static void cli_done(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t id[BUFLEN_ID] = { 0 };
+    wchar_t id[BUFLEN_ID] = { 0 };
 
-    byte_t* args[] = {
+    wchar_t* args[] = {
         id
     };
 
@@ -728,7 +748,11 @@ static void cli_done(command_t* cmd, const byte_t* cmdstr)
         return;
 
     const byte_t* err = NULL;
-    STORAGE_ERR_CODE error = storage_set_done(id, STORAGE_DONE, &err);
+
+    byte_t bs_id[BUFLEN_ID * sizeof(wchar_t)] = { 0 };
+    wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
+
+    STORAGE_ERR_CODE error = storage_set_done(bs_id, STORAGE_DONE, &err);
 
     if (error != STORAGE_NO_ERROR)
     {
@@ -743,11 +767,11 @@ static void cli_done(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_open(command_t* cmd, const byte_t* cmdstr)
+static void cli_open(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t id[BUFLEN_ID] = { 0 };
+    wchar_t id[BUFLEN_ID] = { 0 };
 
-    byte_t* args[] = {
+    wchar_t* args[] = {
         id
     };
 
@@ -761,7 +785,11 @@ static void cli_open(command_t* cmd, const byte_t* cmdstr)
         return;
 
     const byte_t* err = NULL;
-    STORAGE_ERR_CODE error = storage_set_done(id, STORAGE_OPEN, &err);
+
+    byte_t bs_id[BUFLEN_ID * sizeof(wchar_t)] = { 0 };
+    wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
+
+    STORAGE_ERR_CODE error = storage_set_done(bs_id, STORAGE_OPEN, &err);
 
     if (error != STORAGE_NO_ERROR)
     {
@@ -776,7 +804,7 @@ static void cli_open(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_history(command_t* cmd, const byte_t* cmdstr)
+static void cli_history(command_t* cmd, const wchar_t* cmdstr)
 {
     history_print();
 }
@@ -787,11 +815,11 @@ static void cli_history(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_history_exec(command_t* cmd, const byte_t* cmdstr)
+static void cli_history_exec(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t history_index[BUFLEN_HISTORY_INDEX] = { 0 };
+    wchar_t history_index[BUFLEN_HISTORY_INDEX] = { 0 };
 
-    byte_t* args[] = {
+    wchar_t* args[] = {
         history_index
     };
 
@@ -801,13 +829,16 @@ static void cli_history_exec(command_t* cmd, const byte_t* cmdstr)
 
     int read = cli_parse_cmd(cmd, cmdstr, 1, args, lens);
 
-    int history_index_int = atoi(history_index);
+    byte_t bs_index[BUFLEN_HISTORY_INDEX * sizeof(wchar_t)] = { 0 };
+    wstobs(history_index, bs_index, BUFLEN_HISTORY_INDEX * sizeof(wchar_t));
+
+    int history_index_int = atoi(bs_index);
 
     if (read == -1)
         return;
 
     byte_t* err = NULL;
-    const byte_t* exec = history_get(history_index_int, &err);
+    const wchar_t* exec = history_get(history_index_int, &err);
 
     if (exec == NULL)
     {
@@ -828,7 +859,7 @@ static void cli_history_exec(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_version(command_t* cmd, const byte_t* cmdstr)
+static void cli_version(command_t* cmd, const wchar_t* cmdstr)
 {
 #ifndef NDEBUG
     printf("%s %s\n", VERSION, "(Debug Build)");
@@ -875,13 +906,12 @@ static int edit_temp_details()
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_edit(command_t* cmd, const byte_t* cmdstr)
+static void cli_edit(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t id[BUFLEN_ID] = { 0 };
-    byte_t buf[BUFLEN_DETAIL] = { 0 };
+    wchar_t id[BUFLEN_ID] = { 0 };
     const byte_t* errstr = NULL;
 
-    byte_t* args[] = {
+    wchar_t* args[] = {
         id
     };
 
@@ -907,8 +937,13 @@ static void cli_edit(command_t* cmd, const byte_t* cmdstr)
         return;
     }
 
+    byte_t bs_id[BUFLEN_ID * sizeof(wchar_t)] = { 0 };
+    wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
+
+    byte_t bs_buf[BUFLEN_DETAIL * sizeof(wchar_t)] = { 0 };
+
     size_t num_written_bytes = 0;
-    STORAGE_ERR_CODE storage_error = storage_get_details(id, buf, BUFLEN_DETAIL, &num_written_bytes, &errstr);
+    STORAGE_ERR_CODE storage_error = storage_get_details(bs_id, bs_buf, BUFLEN_DETAIL, &num_written_bytes, &errstr);
 
     if (storage_error != STORAGE_NO_ERROR)
     {
@@ -918,7 +953,7 @@ static void cli_edit(command_t* cmd, const byte_t* cmdstr)
         return;
     }
 
-    size_t written = fwrite(buf, sizeof(byte_t), num_written_bytes, write_file);
+    size_t written = fwrite(bs_buf, sizeof(byte_t), num_written_bytes, write_file);
 
     if (written < num_written_bytes)
     {
@@ -979,7 +1014,7 @@ static void cli_edit(command_t* cmd, const byte_t* cmdstr)
     }
 
     const byte_t* save_err;
-    STORAGE_ERR_CODE saved = storage_save_details(id, tempbuf, new_temp_sz, &save_err);
+    STORAGE_ERR_CODE saved = storage_save_details(bs_id, tempbuf, new_temp_sz, &save_err);
 
     if (saved != STORAGE_NO_ERROR)
     {
@@ -1010,10 +1045,10 @@ static void cli_edit(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_attach(command_t* cmd, const byte_t* cmdstr)
+static void cli_attach(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t id[BUFLEN_ID] = { 0 };
-    byte_t path[PATH_MAX] = { 0 };
+    wchar_t id[BUFLEN_ID] = { 0 };
+    wchar_t path[PATH_MAX] = { 0 };
 
     printf("Todo Id: ");
     cli_getline_discard(id, BUFLEN_ID);
@@ -1034,7 +1069,14 @@ static void cli_attach(command_t* cmd, const byte_t* cmdstr)
     }
 
     const byte_t* err = NULL;
-    STORAGE_ERR_CODE error = storage_attach_file(id, path, &err);
+
+    byte_t bs_id[BUFLEN_ID * sizeof(wchar_t)] = { 0 };
+    wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
+
+    byte_t bs_path[PATH_MAX * sizeof(wchar_t)] = { 0 };
+    wstobs(path, bs_path, PATH_MAX * sizeof(wchar_t));
+
+    STORAGE_ERR_CODE error = storage_attach_file(bs_id, bs_path, &err);
 
     if (error != STORAGE_NO_ERROR)
     {
@@ -1049,11 +1091,11 @@ static void cli_attach(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_delete_attachment(command_t* cmd, const byte_t* cmdstr)
+static void cli_delete_attachment(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t id[BUFLEN_ID] = { 0 };
+    wchar_t id[BUFLEN_ID] = { 0 };
 
-    byte_t* args[] = {
+    wchar_t* args[] = {
         id
     };
 
@@ -1067,7 +1109,11 @@ static void cli_delete_attachment(command_t* cmd, const byte_t* cmdstr)
         return;
 
     const byte_t* err = NULL;
-    STORAGE_ERR_CODE error = storage_remove_attachment(id, &err);
+
+    byte_t bs_id[BUFLEN_ID * sizeof(wchar_t)] = { 0 };
+    wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
+
+    STORAGE_ERR_CODE error = storage_remove_attachment(bs_id, &err);
 
     if (error != STORAGE_NO_ERROR)
     {
@@ -1082,11 +1128,11 @@ static void cli_delete_attachment(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_show_attachments(command_t* cmd, const byte_t* cmdstr)
+static void cli_show_attachments(command_t* cmd, const wchar_t* cmdstr)
 {
-    byte_t id[BUFLEN_ID] = { 0 };
+    wchar_t id[BUFLEN_ID] = { 0 };
 
-    byte_t* args[] = {
+    wchar_t* args[] = {
         id
     };
 
@@ -1100,7 +1146,11 @@ static void cli_show_attachments(command_t* cmd, const byte_t* cmdstr)
         return;
 
     const byte_t* err = NULL;
-    STORAGE_ERR_CODE error = storage_print_attachments(id, &err);
+
+    byte_t bs_id[BUFLEN_ID * sizeof(wchar_t)] = { 0 };
+    wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
+
+    STORAGE_ERR_CODE error = storage_print_attachments(bs_id, &err);
 
     if (error != STORAGE_NO_ERROR)
     {
@@ -1115,7 +1165,7 @@ static void cli_show_attachments(command_t* cmd, const byte_t* cmdstr)
  * @param cmd The issued command.
  * @param cmdstr The issued command as a string.
  */
-static void cli_env(command_t* cmd, const byte_t* cmdstr)
+static void cli_env(command_t* cmd, const wchar_t* cmdstr)
 {
     printf(CYAN("%-20s") GREEN("%-128s\n"), "App directory", env_app_dir());
     printf(CYAN("%-20s") GREEN("%-128s\n"), "Storage", storage_file());
@@ -1128,7 +1178,7 @@ static void cli_env(command_t* cmd, const byte_t* cmdstr)
  * @param result Pointer to pointer of a command structure. This gets set to the associated command structure.
  * @return CLI_ERROR Error code.
  */
-static CLI_ERROR cli_is_valid_cmd(const byte_t* cmd, const command_t** result)
+static CLI_ERROR cli_is_valid_cmd(const wchar_t* cmd, const command_t** result)
 {
     if (!cmd)
     {
@@ -1145,8 +1195,8 @@ static CLI_ERROR cli_is_valid_cmd(const byte_t* cmd, const command_t** result)
         command_t* cmdp = &COMMANDS[i];
 
         size_t ind = 0;
-        char buf[BUFLEN_CLI] = { 0 };
-        for (size_t j = 0; j < strlen(cmd); j++)
+        wchar_t buf[BUFLEN_CLI] = { 0 };
+        for (size_t j = 0; j < wcslen(cmd); j++)
         {
             if ((cmd[j] == ' ' || cmd[j] == '\t') && found == 0) // Ignore whitespaces until the first none-whitespace is hit
             {
@@ -1162,7 +1212,7 @@ static CLI_ERROR cli_is_valid_cmd(const byte_t* cmd, const command_t** result)
             found = 1;
         }
 
-        if (strcmp(buf, cmdp->command) == 0)
+        if (wcscmp(buf, cmdp->command) == 0)
         {
             error = NO_ERROR;
             cmdp->short_cmd_active = false;
@@ -1172,7 +1222,7 @@ static CLI_ERROR cli_is_valid_cmd(const byte_t* cmd, const command_t** result)
 
         if (cmdp->short_command != NULL)
         {
-            if (strcmp(buf, cmdp->short_command) == 0)
+            if (wcscmp(buf, cmdp->short_command) == 0)
             {
                 error = NO_ERROR;
                 cmdp->short_cmd_active = true;
@@ -1187,7 +1237,7 @@ static CLI_ERROR cli_is_valid_cmd(const byte_t* cmd, const command_t** result)
     return error;
 }
 
-static void cli_execute_cmdstr(const byte_t* cmdstr)
+static void cli_execute_cmdstr(const wchar_t* cmdstr)
 {
     const command_t* issued = NULL;
     CLI_ERROR isValid = cli_is_valid_cmd(cmdstr, &issued);
@@ -1221,7 +1271,7 @@ void cli_prompt()
         size_t pind = rand() % ARR_SIZE(prompts);
         printf("%s", prompts[pind]);
 
-        char cmd_buffer[BUFLEN_CLI] = { 0 };
+        wchar_t cmd_buffer[BUFLEN_CLI] = { 0 };
 
         cli_getline_discard(cmd_buffer, BUFLEN_CLI);
 

@@ -30,15 +30,15 @@ SOFTWARE. */
 
 #define HISTORY_SIZE 1024
 
-static byte_t* HISTORY[HISTORY_SIZE] = { 0 };
+static wchar_t* HISTORY[HISTORY_SIZE] = { 0 };
 static size_t history_index = 0;
 
-int history_insert(const byte_t* command)
+int history_insert(const wchar_t* command)
 {
     if (!command)
         return 0;
 
-    byte_t* ins = strdup(command);
+    wchar_t* ins = wcsdup(command);
 
     if (history_index == HISTORY_SIZE - 1)
     {
@@ -55,7 +55,7 @@ int history_insert(const byte_t* command)
     return 1;
 }
 
-const byte_t* history_get(int index, byte_t** err)
+const wchar_t* history_get(int index, byte_t** err)
 {
     if (index < 0)
     {
@@ -89,7 +89,7 @@ int history_print()
             continue;
         }
 
-        printf(CYAN("[%zu]") " %s\n", i, HISTORY[i]);
+        printf(CYAN("[%zu]") " %ls\n", i, HISTORY[i]);
     }
 
     return 1;

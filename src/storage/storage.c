@@ -33,7 +33,6 @@ SOFTWARE. */
 
 #include "storage.h"
 
-#include "../symbols/symbols.h"
 #include "../color/color.h"
 #include "../env/env.h"
 
@@ -64,7 +63,7 @@ static sqlite3* sqlite_handle;
 typedef struct
 {
     STORAGE_PRINT_OPTIONS option;
-    const byte_t* str;
+    const wchar_t* str;
 
 } storage_print_option_t;
 
@@ -72,19 +71,19 @@ static const storage_print_option_t OPTIONS[] = {
 
     {
         .option = ALL,
-        .str = "all"
+        .str = L"all"
     },
     {
         .option = DONE,
-        .str = "done"
+        .str = L"done"
     },
     {
         .option = OPEN,
-        .str = "open"
+        .str = L"open"
     }
 };
 
-STORAGE_PRINT_OPTIONS storage_str_to_option(const byte_t* option)
+STORAGE_PRINT_OPTIONS storage_str_to_option(const wchar_t* option)
 {
     if (option == NULL)
     {
@@ -95,7 +94,7 @@ STORAGE_PRINT_OPTIONS storage_str_to_option(const byte_t* option)
 
     for (size_t i = 0; i < len; i++)
     {
-        if (strcmp(option, OPTIONS[i].str) == 0)
+        if (wcscmp(option, OPTIONS[i].str) == 0)
         {
             return OPTIONS[i].option;
         }
@@ -332,7 +331,7 @@ static int print_todo(void* arg, int column_count, byte_t** values, byte_t** col
 
     int done_i = atoi(done);
 
-    printf(CYAN("%-16s")"%-64s%-16s%-24s\n", id, title, done_i == 0 ? RED(CROSS_MARK) : GREEN(CHECK_MARK), created);
+    printf(CYAN("%-16s")"%-64s%-16s%-24s\n", id, title, done_i == 0 ? CROSS_MARK : CHECK_MARK, created);
 
     return 0;
 }
@@ -556,7 +555,7 @@ STORAGE_ERR_CODE storage_print_search_results(const byte_t* search_str, const by
 
             const ubyte_t* created = sqlite3_column_text(statement, 3) == NULL ? (ubyte_t*)"" : sqlite3_column_text(statement, 3);
 
-            printf(CYAN("%-16s") "%-64s%-16s%-16s\n", id, title, done_i == 0 ? RED(CROSS_MARK) : GREEN(CHECK_MARK), created);
+            printf(CYAN("%-16s") "%-64s%-16s%-24s\n", id, title, done_i == 0 ? CROSS_MARK : CHECK_MARK, created);
         }
 
         if (rc == SQLITE_DONE)

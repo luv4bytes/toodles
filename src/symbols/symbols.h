@@ -22,5 +22,32 @@ SOFTWARE. */
 
 #pragma once
 
+#include <wchar.h>
+#include <stdbool.h>
+
+#include "../types/types.h"
+
 #define CHECK_MARK "\u2705"
 #define CROSS_MARK "\u2718"
+
+/**
+ * @brief Converts the given src byte_t* to wchar_t* dest.
+ *
+ * @param src Multibyte string.
+ * @param dest Wchar_t string.
+ * @param max_dest Max number of wchar_t in dest.
+ * @return true Conversion was successfull.
+ * @return false Conversion failed.
+ */
+bool bstows(const byte_t* src, wchar_t* dest, size_t max_dest);
+
+/**
+ * @brief Converts the given src wchar_t* to byte_t* dest.
+ *
+ * @param src Wchar_t string.
+ * @param dest Multibyte string.
+ * @param max_dest Max number of byte_t in dest.
+ * @return true Conversion was successfull.
+ * @return false Conversion failed.
+ */
+bool wstobs(const wchar_t* src, byte_t* dest, size_t max_dest);

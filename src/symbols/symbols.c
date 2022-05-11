@@ -20,32 +20,42 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
-#pragma once
+#include <string.h>
 
-#include <wchar.h>
+#include "symbols.h"
 
-#include "../types/types.h"
+bool bstows(const byte_t* src, wchar_t* dest, size_t max_dest)
+{
+    if (src == NULL)
+    {
+        return false;
+    }
 
-/**
- * @brief Adds the given command to the history.
- *
- * @param command The command to add to the history.
- * @return int Success indicator.
- */
-int history_insert(const wchar_t* command);
+    if (dest == NULL)
+    {
+        return false;
+    }
 
-/**
- * @brief Returns the command that is stored on the given index.
- *
- * @param index Index in the history.
- * @param err Pointer to error message.
- * @return const byte_t* Command as a string or NULL.
- */
-const wchar_t* history_get(int index, byte_t** err);
+    mbstate_t mbs = { 0 };
+    mbsrtowcs(dest, &src, max_dest, &mbs);
 
-/**
- * @brief Prints the current history.
- *
- * @return int Success indicator.
- */
-int history_print();
+    return true;
+}
+
+bool wstobs(const wchar_t* src, byte_t* dest, size_t max_dest)
+{
+    if (src == NULL)
+    {
+        return false;
+    }
+
+    if (dest == NULL)
+    {
+        return false;
+    }
+
+    mbstate_t mbs = { 0 };
+    wcsrtombs(dest, &src, max_dest, &mbs);
+
+    return true;
+}

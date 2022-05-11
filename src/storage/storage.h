@@ -22,6 +22,7 @@ SOFTWARE. */
 
 #pragma once
 
+#include "../symbols/symbols.h"
 #include "../types/types.h"
 
 /**
@@ -65,7 +66,7 @@ typedef enum
  * @param option
  * @return const byte_t*
  */
-STORAGE_PRINT_OPTIONS storage_str_to_option(const byte_t* option);
+STORAGE_PRINT_OPTIONS storage_str_to_option(const wchar_t* option);
 
 /**
  * @brief Initializes data that is needed for the storage.

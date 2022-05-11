@@ -1,5 +1,4 @@
-- Project website?
+- Character alignment when printing todos
 
 - Shorten repetitive code
-- Unicode support for printing
 - Tests

@@ -8,7 +8,7 @@ include(FindPkgConfig)
 pkg_check_modules(LIBSQLITE sqlite3 REQUIRED)
 
 add_compile_options(-Wall)
-add_compile_definitions(VERSION="1.0.43-alpha")
+add_compile_definitions(VERSION="1.0.44-alpha")
 
 add_executable(toodles src/main.c
                        src/cli/cli.c
@@ -17,6 +17,7 @@ add_executable(toodles src/main.c
                        src/storage/storage.c
                        src/history/history.c
                        src/env/env.c
+                       src/symbols/symbols.c
                        src/non_interactive/ninac.c
                        src/non_interactive/args/args.c
                        src/non_interactive/help/help.c)
