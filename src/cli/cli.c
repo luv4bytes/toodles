@@ -153,6 +153,7 @@ FWDECL static void cli_attach();
 FWDECL static void cli_delete_attachment();
 FWDECL static void cli_show_attachments();
 FWDECL static void cli_print_attachment();
+FWDECL static void cli_save_attachment_to_disk();
 FWDECL static void cli_execute_cmdstr();
 FWDECL static void cli_env();
 
@@ -290,6 +291,13 @@ static command_t COMMANDS[] = {
         .command = L"patt",
         .description = "Prints out the content of the attachment.",
         .func = cli_print_attachment,
+        .synopsis = "[ID]",
+        .category = ATTACHMENTS
+    },
+    {
+        .command = L"satt",
+        .description = "Save an attachment to disk.",
+        .func = cli_save_attachment_to_disk,
         .synopsis = "[ID]",
         .category = ATTACHMENTS
     },
@@ -1196,6 +1204,50 @@ static void cli_print_attachment(command_t* cmd, const wchar_t* cmdstr)
     wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
 
     STORAGE_ERR_CODE error = storage_print_attachment_content(bs_id, &err);
+
+    if (error != STORAGE_NO_ERROR)
+    {
+        printf(RED("ERR: ") "%s\n", err);
+        return;
+    }
+}
+
+/**
+ * @brief Save an attachment to disk.
+ *
+ * @param cmd The issued command.
+ * @param cmdstr The issued command as a string.
+ */
+static void cli_save_attachment_to_disk(command_t* cmd, const wchar_t* cmdstr)
+{
+    wchar_t id[BUFLEN_ID] = { 0 };
+    wchar_t save_path[PATH_MAX] = { 0 };
+
+    wchar_t* args[] = {
+        id
+    };
+
+    size_t lens[] = {
+        BUFLEN_ID
+    };
+
+    int read = cli_parse_cmd(cmd, cmdstr, 2, args, lens);
+
+    if (read == -1)
+        return;
+
+    const byte_t* err = NULL;
+
+    byte_t bs_id[BUFLEN_ID * sizeof(wchar_t)] = { 0 };
+    wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
+
+    printf("Save path: ");
+    cli_getline_discard(save_path, PATH_MAX);
+
+    byte_t bs_save_path[BUFLEN_ID * sizeof(wchar_t)] = { 0 };
+    wstobs(save_path, bs_save_path, BUFLEN_ID * sizeof(wchar_t));
+
+    STORAGE_ERR_CODE error = storage_save_attachment_to_disk(bs_id, bs_save_path, &err);
 
     if (error != STORAGE_NO_ERROR)
     {
