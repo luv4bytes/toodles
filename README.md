@@ -16,7 +16,9 @@ You can add ToDos, remove ToDos, edit them, attach files to them etc.
 
 ### Requirements
 
-&#129412; libsqlite3
+&#129412; libsqlite3    
+&#129412; cmake     
+&#129412; pkg-config
 
 ### Building and Installation
 
