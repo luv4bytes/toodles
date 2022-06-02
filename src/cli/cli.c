@@ -152,6 +152,7 @@ FWDECL static void cli_version();
 FWDECL static void cli_attach();
 FWDECL static void cli_delete_attachment();
 FWDECL static void cli_show_attachments();
+FWDECL static void cli_print_attachment();
 FWDECL static void cli_execute_cmdstr();
 FWDECL static void cli_env();
 
@@ -282,6 +283,13 @@ static command_t COMMANDS[] = {
         .command = L"showatt",
         .description = "Shows all attachments for given todo id.",
         .func = cli_show_attachments,
+        .synopsis = "[ID]",
+        .category = ATTACHMENTS
+    },
+    {
+        .command = L"patt",
+        .description = "Prints out the content of the attachment.",
+        .func = cli_print_attachment,
         .synopsis = "[ID]",
         .category = ATTACHMENTS
     },
@@ -1151,6 +1159,43 @@ static void cli_show_attachments(command_t* cmd, const wchar_t* cmdstr)
     wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
 
     STORAGE_ERR_CODE error = storage_print_attachments(bs_id, &err);
+
+    if (error != STORAGE_NO_ERROR)
+    {
+        printf(RED("ERR: ") "%s\n", err);
+        return;
+    }
+}
+
+/**
+ * @brief Print the content of an attachment to stdout.
+ *
+ * @param cmd The issued command.
+ * @param cmdstr The issued command as a string.
+ */
+static void cli_print_attachment(command_t* cmd, const wchar_t* cmdstr)
+{
+    wchar_t id[BUFLEN_ID] = { 0 };
+
+    wchar_t* args[] = {
+        id
+    };
+
+    size_t lens[] = {
+        BUFLEN_ID
+    };
+
+    int read = cli_parse_cmd(cmd, cmdstr, 1, args, lens);
+
+    if (read == -1)
+        return;
+
+    const byte_t* err = NULL;
+
+    byte_t bs_id[BUFLEN_ID * sizeof(wchar_t)] = { 0 };
+    wstobs(id, bs_id, BUFLEN_ID * sizeof(wchar_t));
+
+    STORAGE_ERR_CODE error = storage_print_attachment_content(bs_id, &err);
 
     if (error != STORAGE_NO_ERROR)
     {

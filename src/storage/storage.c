@@ -1273,6 +1273,94 @@ STORAGE_ERR_CODE storage_print_attachments(const byte_t* todo_id, const byte_t**
     return STORAGE_NO_ERROR;
 }
 
+STORAGE_ERR_CODE storage_print_attachment_content(const byte_t* attachment_id, const byte_t** err)
+{
+    if (!attachment_id || attachment_id[0] == 0)
+    {
+        if (err)
+        {
+            *err = "Please provide an id.";
+        }
+
+        return STORAGE_ERROR;
+    }
+
+    int result = sqlite3_open(storage_file_path, &sqlite_handle);
+
+    if (result != SQLITE_OK)
+    {
+        if (err)
+        {
+            *err = sqlite3_errmsg(sqlite_handle);
+        }
+
+        return STORAGE_ERROR;
+    }
+
+    const byte_t* sql = "select t.ATTACHMENT from ATTACHMENTS t where t.ID = ?";
+
+    sqlite3_stmt* statement;
+    result = sqlite3_prepare(sqlite_handle, sql, strlen(sql), &statement, NULL);
+
+    if (result != SQLITE_OK)
+    {
+        if (err)
+        {
+            *err = sqlite3_errmsg(sqlite_handle);
+        }
+
+        return STORAGE_ERROR;
+    }
+
+    result = sqlite3_bind_text(statement, 1, attachment_id, strlen(attachment_id), NULL);
+
+    if (result != SQLITE_OK)
+    {
+        if (err)
+        {
+            *err = sqlite3_errmsg(sqlite_handle);
+        }
+
+        return STORAGE_ERROR;
+    }
+
+    int rc = 0;
+    rc = sqlite3_step(statement);
+
+    if (rc == SQLITE_ROW)
+    {
+        const ubyte_t* content = sqlite3_column_text(statement, 0) == NULL ? (ubyte_t*)"" : sqlite3_column_text(statement, 0);
+
+        printf("%s\n", content);
+    }
+
+    result = sqlite3_finalize(statement);
+
+    if (result != SQLITE_OK)
+    {
+        if (err)
+        {
+            *err = sqlite3_errmsg(sqlite_handle);
+        }
+
+        return STORAGE_ERROR;
+    }
+
+    result = sqlite3_close(sqlite_handle);
+
+    if (result != SQLITE_OK)
+    {
+        if (err)
+        {
+            *err = sqlite3_errmsg(sqlite_handle);
+        }
+
+        return STORAGE_ERROR;
+    }
+
+    return STORAGE_NO_ERROR;
+}
+
 STORAGE_ERR_CODE storage_get_details(const byte_t* id, byte_t* buffer, size_t buflen, size_t* written, const byte_t** err)
 {
     assert(buffer != NULL);

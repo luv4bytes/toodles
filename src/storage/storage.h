@@ -185,6 +185,16 @@ STORAGE_ERR_CODE storage_remove_attachment(const byte_t* id, const byte_t** err)
 STORAGE_ERR_CODE storage_print_attachments(const byte_t* todo_id, const byte_t** err);
 
 /**
+ * @brief Prints the content of the attachment with given id.
+ *
+ * @param attachment_id The id of the todo entry.
+ * @param err Pointer to error message.
+ *
+ * @return STORAGE_ERR_CODE Success indicator.
+ */
+STORAGE_ERR_CODE storage_print_attachment_content(const byte_t* attachment_id, const byte_t** err);
+
+/**
  * @brief Reads the details for the todo entry with given id.
  *
  * @param id Id of the todo.
