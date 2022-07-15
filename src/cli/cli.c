@@ -118,22 +118,6 @@ typedef struct inner_command_t
 
 } command_t;
 
-const byte_t* prompts[] = {
-    GREEN_REGULAR("toodles :) > "),
-    GREEN_REGULAR(">>> "),
-    GREEN_REGULAR("==> "),
-    GREEN_REGULAR("*-* > "),
-    GREEN_REGULAR(":-* > "),
-    GREEN_REGULAR("wanna party? > "),
-    GREEN_REGULAR("omg i love cookies!... > "),
-    GREEN_REGULAR("funny, huh? > "),
-    GREEN_REGULAR("¯\\_(ツ)_/¯ > "),
-    GREEN_REGULAR("ugh... duh... > "),
-    MAGENTA("\xF0\x9F\x8D\x86") CYAN("\xF0\x9F\x92\xA6") " > ",
-    GREEN_REGULAR("I know, right?... > "),
-    GREEN_REGULAR("Okay, boomer... > "),
-};
-
 FWDECL static void cli_print_help();
 FWDECL static void cli_exit();
 FWDECL static void cli_add();
@@ -1365,8 +1349,7 @@ void cli_prompt()
 {
     while (1)
     {
-        size_t pind = rand() % ARR_SIZE(prompts);
-        printf("%s", prompts[pind]);
+        printf(MAGENTA("%s") " > ", "\xE2\x9D\xA4");
 
         wchar_t cmd_buffer[BUFLEN_CLI] = { 0 };
 
